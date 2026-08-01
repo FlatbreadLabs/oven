@@ -1,0 +1,51 @@
+{
+  "title": "Implement then review with gates",
+  "loops": [
+    {
+      "convergeOn": "review",
+      "maxIterations": 3,
+      "reexecute": {
+        "kind": "tasks",
+        "tasks": ["survey", "design", "implement"]
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "survey",
+      "depends_on": [],
+      "complexity": "LOW",
+      "subtask_prompt": "List the files and commands that matter for the requested change. Markdown bullets only — do not edit files."
+    },
+    {
+      "id": "design",
+      "depends_on": ["survey"],
+      "complexity": "MED",
+      "subtask_prompt": "Write a short implementation plan from the survey. Name the files to touch and the checks to run afterward. No code yet."
+    },
+    {
+      "id": "implement",
+      "depends_on": ["design"],
+      "complexity": "MED",
+      "subtask_prompt": "Implement the plan. Keep the diff small. Summarize what changed under `## Files changed`."
+    },
+    {
+      "id": "unit-check",
+      "depends_on": ["implement"],
+      "kind": "oracle",
+      "command": "pnpm test"
+    },
+    {
+      "id": "human-ok",
+      "depends_on": ["unit-check"],
+      "kind": "pause",
+      "subtask_prompt": "Pause for a human to inspect the diff and test result before review continues."
+    },
+    {
+      "id": "review",
+      "depends_on": ["human-ok"],
+      "complexity": "HIGH",
+      "subtask_prompt": "Review the implementation. Use `## Blockers` and `## High-severity findings` when needed; leave both empty when the change is clean."
+    }
+  ]
+}

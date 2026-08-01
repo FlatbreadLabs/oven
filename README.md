@@ -126,6 +126,8 @@ Optional task kinds add control gates:
 - `kind: "oracle"` runs a shell command and records pass/fail evidence.
 - `kind: "pause"` waits for a checkpoint sentinel so a human can inspect or approve before downstream work continues.
 
+See `.cursor/skills/proof/examples/example_gates_dag.json` for a small DAG that combines mixed `complexity`, an oracle, a pause, and a `DAG.loops` entry.
+
 ## `DAG.loops`
 
 Bounded convergence loops can live in the DAG itself instead of only on the CLI. This keeps the run reproducible: contributors do not need to remember a matching `--converge-on ... --max-iterations ...` flag pair.
@@ -204,7 +206,7 @@ pnpm exec proof --dag /tmp/my.json --canvas-path /tmp/my.canvas.tsx \
   --full-output-dir /path/to/my-artifacts/
 ```
 
-## Project skill
+## Project skill and reviewer agent
 
 The canonical Cursor skill entrypoint lives at:
 
@@ -213,6 +215,12 @@ The canonical Cursor skill entrypoint lives at:
 ```
 
 Use that skill when a request asks to decompose work, run subagents in parallel, or execute a task as a dependency graph. The legacy `.cursor/skills/dag-task-runner/SKILL.md` entry remains as a compatibility handoff and points to Proof.
+
+For read-only reviews of loop semantics, resume/restart boundaries, budget handling, and failure-mode ergonomics, use:
+
+```text
+.cursor/agents/proof-runtime-skeptic.md
+```
 
 ## Self-hosting mode
 

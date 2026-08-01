@@ -1,7 +1,8 @@
 /**
  * DAG schema parsing, validation, and topological ranking for the runner.
  *
- * The DAG file shape is intentionally tiny — see ../examples/example_dag.json.
+ * The DAG file shape is intentionally tiny — see
+ * .cursor/skills/proof/examples/example_dag.json.
  */
 
 export type Complexity = 'HIGH' | 'MED' | 'LOW';

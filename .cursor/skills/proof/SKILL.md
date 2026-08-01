@@ -71,7 +71,7 @@ The runner executes tasks within a rank **concurrently** via `Promise.all`. A li
 
 Quality bar: when you sketch the rank structure (rank 1 → rank 2 → …), at least one rank should contain more than one task in any non-trivial problem. If your DAG is a single chain of 1-task ranks, you almost certainly missed parallelism — go back and look again.
 
-The example shipped with the skill (`.cursor/skills/proof/examples/example_dag.json`) demonstrates the pattern: rank 1 fans out to two read-only research tasks, rank 2 merges them into a design, rank 3 implements, and rank 4 fans out again to tests + docs.
+The example shipped with the skill (`.cursor/skills/proof/examples/example_dag.json`) demonstrates the pattern: rank 1 fans out to two read-only research tasks, rank 2 merges them into a design, rank 3 implements, and rank 4 fans out again to tests + docs. For `kind: "oracle"`, `kind: "pause"`, and `DAG.loops`, see `.cursor/skills/proof/examples/example_gates_dag.json`.
 
 Write the JSON to a temp file **and immediately generate the initial canvas** so the user can open it while subagents spin up. Run all of the following in a single shell block:
 
@@ -263,6 +263,8 @@ set -a && source .env && set +a
 ## Reference
 
 - Package: `@flatbread/proof` (repo root; sources in `src/`)
-- DAG schema example: `.cursor/skills/proof/examples/example_dag.json`
+- Parallelism example: `.cursor/skills/proof/examples/example_dag.json`
+- Gates example (oracle, pause, loops): `.cursor/skills/proof/examples/example_gates_dag.json`
 - Library exports: `import { parseDAG, computeRanks, ... } from '@flatbread/proof'`
 - Cursor SDK docs: https://cursor.com/docs/api/sdk/typescript
+- Runtime reviewer agent: `.cursor/agents/proof-runtime-skeptic.md`
