@@ -300,8 +300,8 @@ function parseArgs(argv: string[]): CliArgs {
     statePathRaw !== undefined && statePathRaw !== '' && statePathRaw !== 'true'
       ? statePathRaw
       : restartOnRunnerChange
-      ? resumeState ?? '.proof/run-state.json'
-      : undefined;
+        ? (resumeState ?? '.proof/run-state.json')
+        : undefined;
 
   return {
     dag: args.dag,
@@ -371,15 +371,15 @@ function cursorSdkRipgrepBundlePackage(): string | undefined {
     return arch === 'arm64'
       ? '@cursor/sdk-darwin-arm64'
       : arch === 'x64'
-      ? '@cursor/sdk-darwin-x64'
-      : undefined;
+        ? '@cursor/sdk-darwin-x64'
+        : undefined;
   }
   if (platform === 'linux') {
     return arch === 'arm64'
       ? '@cursor/sdk-linux-arm64'
       : arch === 'x64'
-      ? '@cursor/sdk-linux-x64'
-      : undefined;
+        ? '@cursor/sdk-linux-x64'
+        : undefined;
   }
   if (platform === 'win32' && arch === 'x64') {
     return '@cursor/sdk-win32-x64';
@@ -627,10 +627,10 @@ async function main(): Promise<void> {
     dag.loops !== undefined && dag.loops.length > 0
       ? resolveConvergenceLoops(dag.loops)
       : args.convergeOn !== undefined
-      ? resolveConvergenceLoops([
-          { convergeOn: args.convergeOn, maxIterations: args.maxIterations },
-        ])
-      : [];
+        ? resolveConvergenceLoops([
+            { convergeOn: args.convergeOn, maxIterations: args.maxIterations },
+          ])
+        : [];
 
   const fullOutputAbsoluteDir: string | undefined = (() => {
     if (args.noArtifacts || args.initOnly || args.dryCheckCmds)
@@ -1024,8 +1024,8 @@ async function main(): Promise<void> {
       errors.length > 0
         ? 'FAILED'
         : budgetHits.length > 0
-        ? 'BUDGET_EXCEEDED'
-        : 'SUCCESS';
+          ? 'BUDGET_EXCEEDED'
+          : 'SUCCESS';
     if (errors.length > 0 || budgetHits.length > 0) {
       const parts: string[] = [];
       if (errors.length > 0) {
@@ -1981,8 +1981,8 @@ async function markRunTerminated(
       outcome === 'INTERRUPTED'
         ? 'Runner interrupted'
         : outcome === 'BUDGET_EXCEEDED'
-        ? 'Run halted: token budget exceeded'
-        : 'Runner terminated';
+          ? 'Run halted: token budget exceeded'
+          : 'Runner terminated';
     task.finishedAt = now;
     if (task.startedAt !== undefined) {
       task.durationMs = now - task.startedAt;
@@ -2043,7 +2043,7 @@ function structuredCloneState(state: RunState): RunState {
 
 main().catch((err) => {
   console.error(
-    `[proof] fatal: ${err instanceof Error ? err.stack ?? err.message : err}`
+    `[proof] fatal: ${err instanceof Error ? (err.stack ?? err.message) : err}`
   );
   process.exit(1);
 });

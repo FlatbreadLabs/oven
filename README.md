@@ -1,20 +1,40 @@
 # Proof
 
-Proof is Flatbread's DAG task runner for Cursor agents. It decomposes a task into a graph of subagents, runs each node in topological order, and writes a live `.canvas.tsx` so you can watch the work move from `PENDING` to `RUNNING` to `FINISHED` or `ERROR`.
+Proof is an agent-orchestration tool for Cursor. You give it a DAG of subagent
+tasks; it runs each node in dependency order, picks a model from the task's
+complexity (`HIGH` / `MED` / `LOW`), and streams live status into a
+`.canvas.tsx` file so you can watch work move from `PENDING` to `RUNNING` to
+`FINISHED` or `ERROR`.
 
-The package ships as `@flatbread/proof` and exposes:
+The npm package is `@flatbread/proof`. It ships:
 
-- `proof`: run a DAG or initialize its canvas.
-- `proof-supervisor`: run Proof in self-hosting mode so edits to `packages/proof/src/**` can be picked up between ranks.
-- Library exports for tooling that wants to author, validate, or inspect DAGs programmatically.
+- `proof` — run a DAG, or initialize its canvas without an API key
+- `proof-supervisor` — self-hosting wrapper that restarts when the runner's own
+  sources change between ranks
+- Library exports for tooling that authors, validates, or inspects DAGs
 
-## Quick Start
-
-Build the package once after installing dependencies:
+## Install
 
 ```bash
-pnpm -F @flatbread/proof build
+pnpm install
+pnpm build
 ```
+
+Real DAG runs need a Cursor API key:
+
+```bash
+export CURSOR_API_KEY=crsr_...
+```
+
+`--init-only` and `--dry-check-cmds` do not need the key.
+
+If `@cursor/sdk` cannot find its bundled ripgrep, point it at a system binary:
+
+```bash
+export CURSOR_RIPGREP_PATH=/usr/bin/rg
+```
+
+## Quick start
 
 Create a DAG JSON file:
 
@@ -38,7 +58,7 @@ Create a DAG JSON file:
 }
 ```
 
-Initialize a canvas without requiring `CURSOR_API_KEY`:
+Write the initial canvas without `CURSOR_API_KEY`:
 
 ```bash
 pnpm exec proof \
@@ -57,7 +77,13 @@ pnpm exec proof \
   --canvas-path /tmp/example-dag.canvas.tsx
 ```
 
-## DAG Shape
+Validate shell commands embedded in prompts (no API key, no canvas write):
+
+```bash
+pnpm exec proof --dry-check-cmds --dag .cursor/skills/proof/examples/example_dag.json
+```
+
+## DAG shape
 
 Every DAG has a `title` and a `tasks` array. Each task needs:
 
@@ -140,7 +166,7 @@ Notes:
 - `DAG.loops` and `--converge-on` are mutually exclusive. If the DAG already declares loops, remove the CLI flag instead of relying on precedence.
 - Multiple loops are allowed only when their re-execution sets are disjoint, so one loop cannot invalidate another loop's converged result later in the run.
 
-## Artifact Output
+## Artifact output
 
 By default, every **full DAG run** writes per-task markdown transcripts to a timestamped directory (not `--init-only`, which exits before artifact setup, and not `--dry-check-cmds`, which never enters the runner):
 
@@ -178,7 +204,7 @@ pnpm exec proof --dag /tmp/my.json --canvas-path /tmp/my.canvas.tsx \
   --full-output-dir /path/to/my-artifacts/
 ```
 
-## Project Skill
+## Project skill
 
 The canonical Cursor skill entrypoint lives at:
 
@@ -188,7 +214,7 @@ The canonical Cursor skill entrypoint lives at:
 
 Use that skill when a request asks to decompose work, run subagents in parallel, or execute a task as a dependency graph. The legacy `.cursor/skills/dag-task-runner/SKILL.md` entry remains as a compatibility handoff and points to Proof.
 
-## Self-Hosting Mode
+## Self-hosting mode
 
 When the DAG may edit Proof itself, use the supervisor:
 
@@ -203,24 +229,24 @@ The supervisor adds `--restart-on-runner-change`. If runtime files change after 
 
 Each supervisor-spawned runner picks a **new default** `.flatbread/artifacts/dag-<slug>-<timestamp>/` directory unless you pin **`--full-output-dir <path>` on the supervisor command** so every child inherits the same path.
 
-After editing `packages/proof/src/**`, rebuild before resuming packaged CLI runs:
+After editing `src/**`, rebuild before resuming packaged CLI runs:
 
 ```bash
-pnpm -F @flatbread/proof build
+pnpm build
 ```
 
-## Useful Commands
+## Useful commands
 
 ```bash
-pnpm -F @flatbread/proof typecheck
-pnpm -F @flatbread/proof build
-pnpm -F @flatbread/proof test
+pnpm typecheck
+pnpm build
 pnpm test
-pnpm -F @flatbread/proof models:list
+pnpm lint
+pnpm models:list
 pnpm exec proof --dry-check-cmds --dag .cursor/skills/proof/examples/example_dag.json
 ```
 
-`pnpm -F @flatbread/proof test` is the focused bounded-loop suite. Root `pnpm test` also reaches that AVA file through `ava.config.js`.
+`pnpm test` runs the AVA suite (parser, bounded loops, output retention, and the cloud-agent fetch script smoke tests).
 
 ## Library API
 

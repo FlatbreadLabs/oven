@@ -238,8 +238,8 @@ function formatOracleResult(parts: OracleResultParts): string {
         parts.signal ?? 'SIGTERM'
       })`
     : parts.signal !== null
-    ? `${parts.exitCode ?? 'null'} (signal ${parts.signal})`
-    : `${parts.exitCode ?? 'null'}`;
+      ? `${parts.exitCode ?? 'null'} (signal ${parts.signal})`
+      : `${parts.exitCode ?? 'null'}`;
   return [
     `## Pass: ${parts.pass}`,
     `## Command: ${parts.command}`,

@@ -145,8 +145,7 @@ export interface DAGBudget {
  *   names so the runner never mixes a fresh task with stale upstream inputs.
  */
 export type LoopReexecute =
-  | { kind: 'ancestors' }
-  | { kind: 'tasks'; tasks: string[] };
+  { kind: 'ancestors' } | { kind: 'tasks'; tasks: string[] };
 /**
  * First-class bounded convergence loop. Generalizes the singleton CLI
  * `--converge-on`/`--max-iterations` pair into a DAG-native config so a

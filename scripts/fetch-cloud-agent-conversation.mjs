@@ -71,8 +71,8 @@ function extractFromUrl(raw) {
   const href = /^https?:\/\//i.test(trimmed)
     ? trimmed
     : trimmed.includes('cursor.com')
-    ? `https://${trimmed.replace(/^\/+/, '')}`
-    : null;
+      ? `https://${trimmed.replace(/^\/+/, '')}`
+      : null;
   if (href) {
     let u;
     try {
