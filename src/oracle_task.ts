@@ -98,7 +98,7 @@ export async function runOracleTask(
   deps.writer.schedule(deps.cloneState(deps.state));
 
   console.log(
-    `[proof] oracle ${task.id} → exec \`${command}\` (expect /${expectSrc}/)`
+    `[oven] oracle ${task.id} → exec \`${command}\` (expect /${expectSrc}/)`
   );
 
   const outcome = await execShell(command, options);
@@ -142,7 +142,7 @@ export async function runOracleTask(
   deps.writer.schedule(deps.cloneState(deps.state));
 
   console.log(
-    `[proof] oracle ${task.id} → ${pass ? 'PASS' : 'FAIL'} (exit ${
+    `[oven] oracle ${task.id} → ${pass ? 'PASS' : 'FAIL'} (exit ${
       outcome.exitCode ?? 'null'
     }, ${ts.durationMs}ms${outcome.timedOut ? ', TIMED OUT' : ''})`
   );

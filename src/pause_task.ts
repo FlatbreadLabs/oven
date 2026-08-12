@@ -60,7 +60,7 @@ export async function runPauseTask(
   deps.writer.schedule(deps.cloneState(deps.state));
 
   console.log(
-    `[proof] pause ${task.id} → AWAITING_APPROVAL; delete ${sentinelPath} to release the gate`
+    `[oven] pause ${task.id} → AWAITING_APPROVAL; delete ${sentinelPath} to release the gate`
   );
 
   const deadline = Date.now() + options.taskTimeoutMs;
@@ -92,7 +92,7 @@ export async function runPauseTask(
       ts.resultText = renderApprovedResultText(sentinelPath, ts.finishedAt);
       deps.writer.schedule(deps.cloneState(deps.state));
       console.log(
-        `[proof] pause ${task.id} → FINISHED (sentinel removed, ${ts.durationMs}ms gated)`
+        `[oven] pause ${task.id} → FINISHED (sentinel removed, ${ts.durationMs}ms gated)`
       );
       return;
     }

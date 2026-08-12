@@ -34,7 +34,7 @@
  *   --full-output-dir <path> Per-task transcripts as `${taskId}.md` plus
  *                             `_index.md` (run summary table) and `_dag.json`
  *                             (the original DAG definition). Defaults to
- *                             `<cwd>/.flatbread/artifacts/dag-<title-slug>-<ts>/`
+ *                             `<cwd>/.oven/artifacts/dag-<title-slug>-<ts>/`
  *                             when omitted. Override with an explicit path or
  *                             suppress entirely with `--no-artifacts`.
  *   --no-artifacts           Skip writing per-task transcripts, _index.md,
@@ -58,7 +58,7 @@
  *                             `## Stderr (tail)` headings round-trip
  *                             through the same parser as regular tasks.
  *   --checkpoint-dir <path>  Directory for `kind: 'pause'` sentinel files
- *                             (default `.proof/` under --cwd).
+ *                             (default `.oven/` under --cwd).
  *   --converge-on <task-id>  After the main DAG run, parse the named task's
  *                             authoritative transcript for `## Blockers` /
  *                             `## High-severity findings` (fallbacks to bounded
@@ -71,7 +71,7 @@
  *                             --max-iterations is reached.
  *   --max-iterations <N>     Convergence iteration ceiling (default: 3).
  *   --state-path <path>      Persist resumable runner state after each rank.
- *                             Defaults to `.proof/run-state.json` when
+ *                             Defaults to `.oven/run-state.json` when
  *                             --restart-on-runner-change is enabled.
  *   --resume-state <path>    Resume from a previously persisted state file.
  *   --restart-on-runner-change
@@ -188,7 +188,7 @@ interface CliArgs {
   streamIdleTimeoutMs: number;
   initOnly: boolean;
   dryCheckCmds: boolean;
-  /** Absolute dir for `kind: 'pause'` sentinel files. Defaults to `<cwd>/.proof`. */
+  /** Absolute dir for `kind: 'pause'` sentinel files. Defaults to `<cwd>/.oven`. */
   checkpointDir: string;
   /** When set, the runner re-executes ancestors after the named task to converge on a clean review. */
   convergeOn?: string;
@@ -281,7 +281,7 @@ function parseArgs(argv: string[]): CliArgs {
   const checkpointRaw = args['checkpoint-dir'];
   const checkpointDir = isAbsolute(checkpointRaw ?? '')
     ? (checkpointRaw as string)
-    : resolve(cwd, checkpointRaw ?? '.proof');
+    : resolve(cwd, checkpointRaw ?? '.oven');
   const convergeRaw = args['converge-on'];
   const convergeOn =
     convergeRaw !== undefined && convergeRaw !== '' && convergeRaw !== 'true'
@@ -300,7 +300,7 @@ function parseArgs(argv: string[]): CliArgs {
     statePathRaw !== undefined && statePathRaw !== '' && statePathRaw !== 'true'
       ? statePathRaw
       : restartOnRunnerChange
-        ? (resumeState ?? '.proof/run-state.json')
+        ? (resumeState ?? '.oven/run-state.json')
         : undefined;
 
   return {
@@ -402,7 +402,7 @@ function ensureCursorRipgrepPathEnv(): void {
   const bundlePkg = cursorSdkRipgrepBundlePackage();
   if (!bundlePkg) {
     console.warn(
-      '[proof] No bundled ripgrep target for platform; set CURSOR_RIPGREP_PATH to an absolute `rg` path if local agents fail.'
+      '[oven] No bundled ripgrep target for platform; set CURSOR_RIPGREP_PATH to an absolute `rg` path if local agents fail.'
     );
     return;
   }
@@ -420,7 +420,7 @@ function ensureCursorRipgrepPathEnv(): void {
     // Optional dependency missing for this OS/arch — user can set CURSOR_RIPGREP_PATH.
   }
   console.warn(
-    `[proof] Could not resolve bundled ripgrep from ${bundlePkg}. Install optional @cursor deps or export CURSOR_RIPGREP_PATH=/absolute/path/to/rg`
+    `[oven] Could not resolve bundled ripgrep from ${bundlePkg}. Install optional @cursor deps or export CURSOR_RIPGREP_PATH=/absolute/path/to/rg`
   );
 }
 
@@ -444,18 +444,13 @@ function slugifyTitle(s: string): string {
 
 /**
  * Default artifacts directory under the repo (`--cwd`) tree so transcripts
- * live beside the workspace (Flatbread convention: `.flatbread/`). Timestamped
+ * live beside the workspace (Oven convention: `.oven/`). Timestamped
  * so repeated runs accumulate rather than overwriting each other.
  */
 function defaultArtifactsDir(cwd: string, dagTitleSlug: string): string {
   const slug = dagTitleSlug || 'untitled';
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  return join(
-    resolve(cwd),
-    '.flatbread',
-    'artifacts',
-    `dag-${slug}-${timestamp}`
-  );
+  return join(resolve(cwd), '.oven', 'artifacts', `dag-${slug}-${timestamp}`);
 }
 
 async function loadResumedRunState(
@@ -600,7 +595,7 @@ async function main(): Promise<void> {
       modelForComplexity(complexity);
     }
     console.log(
-      '[proof] validated model selections against Cursor.models.list()'
+      '[oven] validated model selections against Cursor.models.list()'
     );
   }
   const ranks = computeRanks(dag);
@@ -642,7 +637,7 @@ async function main(): Promise<void> {
   })();
   if (fullOutputAbsoluteDir) {
     await mkdir(fullOutputAbsoluteDir, { recursive: true });
-    console.log(`[proof] artifacts → ${fullOutputAbsoluteDir}`);
+    console.log(`[oven] artifacts → ${fullOutputAbsoluteDir}`);
     await writeFile(
       join(fullOutputAbsoluteDir, '_dag.json'),
       JSON.stringify(raw, null, 2),
@@ -656,7 +651,7 @@ async function main(): Promise<void> {
       : undefined;
   if (findingsAbsoluteDir && !args.initOnly) {
     await mkdir(findingsAbsoluteDir, { recursive: true });
-    console.log(`[proof] findings-dir → ${findingsAbsoluteDir}`);
+    console.log(`[oven] findings-dir → ${findingsAbsoluteDir}`);
   }
 
   const statePathAbsolute =
@@ -698,14 +693,14 @@ async function main(): Promise<void> {
   let indexWritten = false;
 
   console.log(
-    `[proof] DAG "${dag.title}" — ${dag.tasks.length} tasks across ${ranks.length} rank(s)`
+    `[oven] DAG "${dag.title}" — ${dag.tasks.length} tasks across ${ranks.length} rank(s)`
   );
-  console.log(`[proof] canvas → ${args.canvasPath}`);
+  console.log(`[oven] canvas → ${args.canvasPath}`);
   if (resumeStateAbsolute) {
-    console.log(`[proof] resumed state ← ${resumeStateAbsolute}`);
+    console.log(`[oven] resumed state ← ${resumeStateAbsolute}`);
   }
   if (statePathAbsolute) {
-    console.log(`[proof] state-path → ${statePathAbsolute}`);
+    console.log(`[oven] state-path → ${statePathAbsolute}`);
   }
 
   // Always write the initial all-PENDING canvas first. This is what the parent
@@ -715,7 +710,7 @@ async function main(): Promise<void> {
   await persistState('initial state');
 
   if (args.initOnly) {
-    console.log('[proof] --init-only: initial canvas written, exiting');
+    console.log('[oven] --init-only: initial canvas written, exiting');
     return;
   }
 
@@ -726,16 +721,16 @@ async function main(): Promise<void> {
   // ERROR, finalize the canvas, and exit cleanly.
   const onUnhandledRejection = (reason: unknown) => {
     const msg = reason instanceof Error ? reason.message : String(reason);
-    console.error(`[proof] (suppressed unhandled SDK rejection) ${msg}`);
+    console.error(`[oven] (suppressed unhandled SDK rejection) ${msg}`);
   };
   const onUncaughtException = (err: Error): void => {
     const msg = err?.stack ?? err?.message ?? String(err);
-    console.error(`[proof] uncaught exception: ${msg}`);
+    console.error(`[oven] uncaught exception: ${msg}`);
     void failAndExit(1, 'FAILED', `Runner crashed: ${err.message}`);
   };
   const onSignal = (signal: NodeJS.Signals): void => {
     const exitCode = signal === 'SIGINT' ? 130 : 143;
-    console.error(`[proof] received ${signal}; finalizing canvas before exit`);
+    console.error(`[oven] received ${signal}; finalizing canvas before exit`);
     void failAndExit(
       exitCode,
       'INTERRUPTED',
@@ -762,9 +757,9 @@ async function main(): Promise<void> {
     await writer.flush();
     await persistState(`runner source changed after ${boundary}`);
     console.log(
-      `[proof] runner source changed after ${boundary}; persisted state and exiting ${EXIT_RUNNER_RESTART}`
+      `[oven] runner source changed after ${boundary}; persisted state and exiting ${EXIT_RUNNER_RESTART}`
     );
-    console.log(`[proof] changed runner files: ${changed.join(', ')}`);
+    console.log(`[oven] changed runner files: ${changed.join(', ')}`);
     process.exit(EXIT_RUNNER_RESTART);
   }
 
@@ -792,7 +787,7 @@ async function main(): Promise<void> {
           }
         ).catch((e: unknown) => {
           const msg = e instanceof Error ? e.message : String(e);
-          console.warn(`[proof] _index.md write failed: ${msg}`);
+          console.warn(`[oven] _index.md write failed: ${msg}`);
         });
         indexWritten = true;
       }
@@ -800,7 +795,7 @@ async function main(): Promise<void> {
       const flushMsg =
         flushErr instanceof Error ? flushErr.message : String(flushErr);
       console.error(
-        `[proof] failed to flush canvas during shutdown: ${flushMsg}`
+        `[oven] failed to flush canvas during shutdown: ${flushMsg}`
       );
     } finally {
       finalized = true;
@@ -870,7 +865,7 @@ async function main(): Promise<void> {
           ts.resultText ?? ''
         ).catch((e: unknown) => {
           const msg = e instanceof Error ? e.message : String(e);
-          console.warn(`[proof] artifact write failed for ${task.id}: ${msg}`);
+          console.warn(`[oven] artifact write failed for ${task.id}: ${msg}`);
         });
       }
       return;
@@ -898,7 +893,7 @@ async function main(): Promise<void> {
           ts.resultText ?? ''
         ).catch((e: unknown) => {
           const msg = e instanceof Error ? e.message : String(e);
-          console.warn(`[proof] artifact write failed for ${task.id}: ${msg}`);
+          console.warn(`[oven] artifact write failed for ${task.id}: ${msg}`);
         });
       }
       return;
@@ -938,7 +933,7 @@ async function main(): Promise<void> {
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
           console.error(
-            `[proof] findings sidecar write failed for ${task.id}: ${msg}`
+            `[oven] findings sidecar write failed for ${task.id}: ${msg}`
           );
         }
       }
@@ -954,14 +949,14 @@ async function main(): Promise<void> {
       });
       if (runnableRank.length === 0) {
         console.log(
-          `[proof] rank ${rankIdx + 1}/${ranks.length}: ${rank
+          `[oven] rank ${rankIdx + 1}/${ranks.length}: ${rank
             .map((t) => t.id)
             .join(', ')} (already complete; skipping)`
         );
         continue;
       }
       console.log(
-        `[proof] rank ${rankIdx + 1}/${ranks.length}: ${runnableRank
+        `[oven] rank ${rankIdx + 1}/${ranks.length}: ${runnableRank
           .map((t) => t.id)
           .join(', ')}`
       );
@@ -1055,7 +1050,7 @@ async function main(): Promise<void> {
         }
       ).catch((e: unknown) => {
         const msg = e instanceof Error ? e.message : String(e);
-        console.warn(`[proof] _index.md write failed: ${msg}`);
+        console.warn(`[oven] _index.md write failed: ${msg}`);
       });
       // Skip the defensive `finally` rewrite now that this attempt finished
       // (success or logged failure).
@@ -1064,17 +1059,17 @@ async function main(): Promise<void> {
 
     const succeeded = state.tasks.length - errors.length - budgetHits.length;
     console.log(
-      `[proof] done — ${succeeded}/${
+      `[oven] done — ${succeeded}/${
         state.tasks.length
       } succeeded in ${formatMs(state.finishedAt - state.startedAt)}`
     );
     if (errors.length > 0) {
-      console.log(`[proof] errors: ${errors.map((e) => e.id).join(', ')}`);
+      console.log(`[oven] errors: ${errors.map((e) => e.id).join(', ')}`);
       process.exitCode = 1;
     }
     if (budgetHits.length > 0) {
       console.log(
-        `[proof] budget-exceeded: ${budgetHits.map((b) => b.id).join(', ')}`
+        `[oven] budget-exceeded: ${budgetHits.map((b) => b.id).join(', ')}`
       );
       // Distinct from the generic ERROR exit (1) so wrapper scripts can
       // branch on budget. We only upgrade `0`; a prior ERROR-driven `1`
@@ -1085,7 +1080,7 @@ async function main(): Promise<void> {
     }
     if (fullOutputAbsoluteDir) {
       console.log(
-        `[proof] full transcripts + index (_index.md) → ${fullOutputAbsoluteDir}`
+        `[oven] full transcripts + index (_index.md) → ${fullOutputAbsoluteDir}`
       );
     }
   } catch (err) {
@@ -1114,11 +1109,11 @@ async function main(): Promise<void> {
           }
         ).catch((e: unknown) => {
           const msg = e instanceof Error ? e.message : String(e);
-          console.warn(`[proof] _index.md write failed: ${msg}`);
+          console.warn(`[oven] _index.md write failed: ${msg}`);
         });
         indexWritten = true;
       }
-      console.error(`[proof] ${err.message}`);
+      console.error(`[oven] ${err.message}`);
       process.exit(EXIT_BUDGET_EXCEEDED);
     }
     const msg = err instanceof Error ? err.message : String(err);
@@ -1160,7 +1155,7 @@ async function main(): Promise<void> {
         }
       ).catch((e: unknown) => {
         const msg = e instanceof Error ? e.message : String(e);
-        console.warn(`[proof] _index.md write failed: ${msg}`);
+        console.warn(`[oven] _index.md write failed: ${msg}`);
       });
     }
   }
@@ -1372,7 +1367,7 @@ async function runTask(
         options.transcriptStore.getJoined(task.id)
       ).catch((e: unknown) => {
         const msg = e instanceof Error ? e.message : String(e);
-        console.warn(`[proof] artifact write failed for ${task.id}: ${msg}`);
+        console.warn(`[oven] artifact write failed for ${task.id}: ${msg}`);
       });
     }
     options.transcriptStore.finalizeTaskMirrorsDone(task.id);
@@ -1545,7 +1540,7 @@ async function bestEffortCancel(
   } catch (cancelErr) {
     const msg =
       cancelErr instanceof Error ? cancelErr.message : String(cancelErr);
-    console.error(`[proof] failed to cancel timed-out task ${taskId}: ${msg}`);
+    console.error(`[oven] failed to cancel timed-out task ${taskId}: ${msg}`);
   }
 }
 
@@ -1753,7 +1748,7 @@ async function runConvergenceLoop(
   if (!convergeTs) {
     // Defensive — main() already validates this, but the loop must not crash.
     console.error(
-      `[proof] ${loopId}: convergence task "${convergeOn}" not found in state; skipping`
+      `[oven] ${loopId}: convergence task "${convergeOn}" not found in state; skipping`
     );
     return;
   }
@@ -1784,7 +1779,7 @@ async function runConvergenceLoop(
     const findings = extractConvergenceFindings(reviewerSource);
     if (!findings.hasIssues) {
       console.log(
-        `[proof] ${loopId} (converge-on ${convergeOn}): clean — no Blockers / High-severity findings after ${
+        `[oven] ${loopId} (converge-on ${convergeOn}): clean — no Blockers / High-severity findings after ${
           iter - 1
         } re-iteration(s)`
       );
@@ -1813,13 +1808,13 @@ async function runConvergenceLoop(
       convergeTs.errorMessage = `Convergence iteration ${iter} would exceed budget.maxIterations=${budget.maxIterations}`;
       writer.schedule(structuredCloneState(state));
       console.log(
-        `[proof] ${loopId} (converge-on ${convergeOn}): BUDGET-EXCEEDED — iteration ${iter} would exceed budget.maxIterations=${budget.maxIterations}`
+        `[oven] ${loopId} (converge-on ${convergeOn}): BUDGET-EXCEEDED — iteration ${iter} would exceed budget.maxIterations=${budget.maxIterations}`
       );
       return;
     }
 
     console.log(
-      `[proof] ${loopId} iteration ${iter}/${maxIterations}: ${findings.blockerLines.length} blocker(s), ${findings.highSeverityLines.length} high-severity finding(s) — re-running ${reExecIds.size} task(s)`
+      `[oven] ${loopId} iteration ${iter}/${maxIterations}: ${findings.blockerLines.length} blocker(s), ${findings.highSeverityLines.length} high-severity finding(s) — re-running ${reExecIds.size} task(s)`
     );
 
     const convergenceContext = buildConvergenceContext(
@@ -1909,16 +1904,16 @@ async function runConvergenceLoop(
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error(
-          `[proof] findings sidecar re-write failed for ${convergeOn} after BUDGET-EXCEEDED: ${msg}`
+          `[oven] findings sidecar re-write failed for ${convergeOn} after BUDGET-EXCEEDED: ${msg}`
         );
       }
     }
     console.log(
-      `[proof] ${loopId} (converge-on ${convergeOn}): BUDGET-EXCEEDED — exhausted maxIterations=${maxIterations} with ${finalFindings.blockerLines.length} blocker(s), ${finalFindings.highSeverityLines.length} high-severity finding(s)`
+      `[oven] ${loopId} (converge-on ${convergeOn}): BUDGET-EXCEEDED — exhausted maxIterations=${maxIterations} with ${finalFindings.blockerLines.length} blocker(s), ${finalFindings.highSeverityLines.length} high-severity finding(s)`
     );
   } else {
     console.log(
-      `[proof] ${loopId} (converge-on ${convergeOn}): clean after ${maxIterations} re-iteration(s)`
+      `[oven] ${loopId} (converge-on ${convergeOn}): clean after ${maxIterations} re-iteration(s)`
     );
   }
 }
@@ -1941,7 +1936,7 @@ async function skipTask(
     ', '
   )} blocked this task (upstream ERROR or BUDGET-EXCEEDED)`;
   console.log(
-    `[proof] skipping ${task.id} — upstream ${failedDeps.join(
+    `[oven] skipping ${task.id} — upstream ${failedDeps.join(
       ', '
     )} in ERROR/BUDGET-EXCEEDED`
   );
@@ -1954,7 +1949,7 @@ async function skipTask(
     ''
   ).catch((e: unknown) => {
     const msg = e instanceof Error ? e.message : String(e);
-    console.warn(`[proof] artifact write failed for ${task.id}: ${msg}`);
+    console.warn(`[oven] artifact write failed for ${task.id}: ${msg}`);
   });
 }
 
@@ -2043,7 +2038,7 @@ function structuredCloneState(state: RunState): RunState {
 
 main().catch((err) => {
   console.error(
-    `[proof] fatal: ${err instanceof Error ? (err.stack ?? err.message) : err}`
+    `[oven] fatal: ${err instanceof Error ? (err.stack ?? err.message) : err}`
   );
   process.exit(1);
 });

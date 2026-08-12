@@ -7,7 +7,7 @@ if (process.env.FLATBREAD_CI) {
     process.cwd(),
     'node_modules',
     '@flatbread',
-    'proof',
+    'oven',
     'dist',
     'run_dag_supervisor.js'
   );
@@ -15,7 +15,7 @@ if (process.env.FLATBREAD_CI) {
   if (existsSync(cliPath)) {
     import('../dist/run_dag_supervisor.js');
   } else {
-    console.log('@flatbread/proof supervisor CLI is not available');
+    console.log('@flatbread/oven supervisor CLI is not available');
   }
 } else {
   import('../dist/run_dag_supervisor.js');

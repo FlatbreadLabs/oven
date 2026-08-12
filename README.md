@@ -1,15 +1,15 @@
-# Proof
+# Oven
 
-Proof is an agent-orchestration tool for Cursor. You give it a DAG of subagent
+Oven is an agent-orchestration tool for Cursor. You give it a DAG of subagent
 tasks; it runs each node in dependency order, picks a model from the task's
 complexity (`HIGH` / `MED` / `LOW`), and streams live status into a
 `.canvas.tsx` file so you can watch work move from `PENDING` to `RUNNING` to
 `FINISHED` or `ERROR`.
 
-The npm package is `@flatbread/proof`. It ships:
+The npm package is `@flatbread/oven`. It ships:
 
-- `proof` — run a DAG, or initialize its canvas without an API key
-- `proof-supervisor` — self-hosting wrapper that restarts when the runner's own
+- `oven` — run a DAG, or initialize its canvas without an API key
+- `oven-supervisor` — self-hosting wrapper that restarts when the runner's own
   sources change between ranks
 - Library exports for tooling that authors, validates, or inspects DAGs
 
@@ -61,7 +61,7 @@ Create a DAG JSON file:
 Write the initial canvas without `CURSOR_API_KEY`:
 
 ```bash
-pnpm exec proof \
+pnpm exec oven \
   --init-only \
   --dag /tmp/example-dag.json \
   --canvas-path /tmp/example-dag.canvas.tsx
@@ -72,7 +72,7 @@ Run the DAG:
 ```bash
 export CURSOR_API_KEY=crsr_...
 
-pnpm exec proof \
+pnpm exec oven \
   --dag /tmp/example-dag.json \
   --canvas-path /tmp/example-dag.canvas.tsx
 ```
@@ -80,7 +80,7 @@ pnpm exec proof \
 Validate shell commands embedded in prompts (no API key, no canvas write):
 
 ```bash
-pnpm exec proof --dry-check-cmds --dag .cursor/skills/proof/examples/example_dag.json
+pnpm exec oven --dry-check-cmds --dag .cursor/skills/oven/examples/example_dag.json
 ```
 
 ## DAG shape
@@ -92,7 +92,7 @@ Every DAG has a `title` and a `tasks` array. Each task needs:
 - `complexity`: `HIGH`, `MED`, or `LOW`; maps to a Cursor model.
 - `subtask_prompt`: standalone instructions for the subagent.
 
-Proof computes ranks with Kahn topological sort and runs sibling tasks in the same rank concurrently. Avoid placing two sibling tasks in the same rank if they write the same files.
+Oven computes ranks with Kahn topological sort and runs sibling tasks in the same rank concurrently. Avoid placing two sibling tasks in the same rank if they write the same files.
 
 Optional top-level `models` can override the default complexity map with plain
 SDK model id strings or SDK model selections:
@@ -116,7 +116,7 @@ SDK model id strings or SDK model selections:
 Use the object shape when you need `params`; use a string when the model id is
 enough. For example, use `{ "id": "gpt-5.4", "params": [{ "id": "reasoning", "value": "high" }] }`, not a suffix-style id like `gpt-5.4-high`.
 
-When a DAG runs, Proof calls `Cursor.models.list()`, validates model ids and
+When a DAG runs, Oven calls `Cursor.models.list()`, validates model ids and
 param values, and expands partial selections to the closest valid SDK preset
 variant using that model's default variant for omitted params. `--init-only`
 does not call the SDK, so it can still render a canvas without `CURSOR_API_KEY`.
@@ -126,7 +126,7 @@ Optional task kinds add control gates:
 - `kind: "oracle"` runs a shell command and records pass/fail evidence.
 - `kind: "pause"` waits for a checkpoint sentinel so a human can inspect or approve before downstream work continues.
 
-See `.cursor/skills/proof/examples/example_gates_dag.json` for a small DAG that combines mixed `complexity`, an oracle, a pause, and a `DAG.loops` entry.
+See `.cursor/skills/oven/examples/example_gates_dag.json` for a small DAG that combines mixed `complexity`, an oracle, a pause, and a `DAG.loops` entry.
 
 ## `DAG.loops`
 
@@ -173,7 +173,7 @@ Notes:
 By default, every **full DAG run** writes per-task markdown transcripts to a timestamped directory (not `--init-only`, which exits before artifact setup, and not `--dry-check-cmds`, which never enters the runner):
 
 ```
-<repo-root>/.flatbread/artifacts/dag-<title-slug>-<timestamp>/
+<repo-root>/.oven/artifacts/dag-<title-slug>-<timestamp>/
   _dag.json      # The original DAG definition
   _index.md      # Run summary: outcome, timings, and links to all transcripts
   <task-id>.md   # Full agent output for each task (kind: task, oracle, or pause)
@@ -189,20 +189,20 @@ By default, every **full DAG run** writes per-task markdown transcripts to a tim
 
 Paths resolve from `--cwd` (defaults to the process working directory). The live canvas still defaults under `~/.cursor/projects/<workspace-slug>/canvases/` when using `--canvas` without `--canvas-path`.
 
-Previously, transcripts only appeared when you passed `--full-output-dir`; now they land under `.flatbread/` by default. Use `--no-artifacts` for opt-out, or `--full-output-dir` to redirect elsewhere.
+Previously, transcripts only appeared when you passed `--full-output-dir`; now they land under `.oven/` by default. Use `--no-artifacts` for opt-out, or `--full-output-dir` to redirect elsewhere.
 
 `--no-artifacts` suppresses transcripts, `_index.md`, and `_dag.json` only. **`--findings-dir` JSON sidecars use a separate path** — omit that flag (or point it elsewhere) if you need completely artifact-free output besides the canvas.
 
 To suppress artifact writing:
 
 ```bash
-pnpm exec proof --dag /tmp/my.json --canvas-path /tmp/my.canvas.tsx --no-artifacts
+pnpm exec oven --dag /tmp/my.json --canvas-path /tmp/my.canvas.tsx --no-artifacts
 ```
 
 To write artifacts to a custom path:
 
 ```bash
-pnpm exec proof --dag /tmp/my.json --canvas-path /tmp/my.canvas.tsx \
+pnpm exec oven --dag /tmp/my.json --canvas-path /tmp/my.canvas.tsx \
   --full-output-dir /path/to/my-artifacts/
 ```
 
@@ -211,31 +211,31 @@ pnpm exec proof --dag /tmp/my.json --canvas-path /tmp/my.canvas.tsx \
 The canonical Cursor skill entrypoint lives at:
 
 ```text
-.cursor/skills/proof/SKILL.md
+.cursor/skills/oven/SKILL.md
 ```
 
-Use that skill when a request asks to decompose work, run subagents in parallel, or execute a task as a dependency graph. The legacy `.cursor/skills/dag-task-runner/SKILL.md` entry remains as a compatibility handoff and points to Proof.
+Use that skill when a request asks to decompose work, run subagents in parallel, or execute a task as a dependency graph. The legacy `.cursor/skills/dag-task-runner/SKILL.md` entry remains as a compatibility handoff and points to Oven.
 
 For read-only reviews of loop semantics, resume/restart boundaries, budget handling, and failure-mode ergonomics, use:
 
 ```text
-.cursor/agents/proof-runtime-skeptic.md
+.cursor/agents/oven-runtime-skeptic.md
 ```
 
 ## Self-hosting mode
 
-When the DAG may edit Proof itself, use the supervisor:
+When the DAG may edit Oven itself, use the supervisor:
 
 ```bash
-pnpm exec proof-supervisor \
+pnpm exec oven-supervisor \
   --dag /tmp/example-dag.json \
   --canvas-path /tmp/example-dag.canvas.tsx \
   --state-path /tmp/example-dag-state.json
 ```
 
-The supervisor adds `--restart-on-runner-change`. If runtime files change after a rank, Proof persists state, exits with code `75`, and the supervisor resumes from the state file under the rebuilt runtime.
+The supervisor adds `--restart-on-runner-change`. If runtime files change after a rank, Oven persists state, exits with code `75`, and the supervisor resumes from the state file under the rebuilt runtime.
 
-Each supervisor-spawned runner picks a **new default** `.flatbread/artifacts/dag-<slug>-<timestamp>/` directory unless you pin **`--full-output-dir <path>` on the supervisor command** so every child inherits the same path.
+Each supervisor-spawned runner picks a **new default** `.oven/artifacts/dag-<slug>-<timestamp>/` directory unless you pin **`--full-output-dir <path>` on the supervisor command** so every child inherits the same path.
 
 After editing `src/**`, rebuild before resuming packaged CLI runs:
 
@@ -251,14 +251,14 @@ pnpm build
 pnpm test
 pnpm lint
 pnpm models:list
-pnpm exec proof --dry-check-cmds --dag .cursor/skills/proof/examples/example_dag.json
+pnpm exec oven --dry-check-cmds --dag .cursor/skills/oven/examples/example_dag.json
 ```
 
 `pnpm test` runs the AVA suite (parser, bounded loops, output retention, and the cloud-agent fetch script smoke tests).
 
 ## Library API
 
-Proof also exposes helpers for tooling:
+Oven also exposes helpers for tooling:
 
 ```ts
 import {
@@ -269,7 +269,7 @@ import {
   runDryCheck,
   type DAG,
   type TaskState,
-} from '@flatbread/proof';
+} from '@flatbread/oven';
 ```
 
 The public API includes DAG parsing and rank computation, model resolution, canvas state types, convergence helpers, dry command checks, oracle and pause helpers, and self-hosting state utilities.
