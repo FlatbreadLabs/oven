@@ -112,7 +112,7 @@ test('convergence extraContext carries late blockers under full upstream excerpt
 });
 
 test('findings sidecar uses parseSource (full transcript) over bounded resultText', async (t) => {
-  const dir = mkdtempSync(join(tmpdir(), 'proof-sidecar-'));
+  const dir = mkdtempSync(join(tmpdir(), 'oven-sidecar-'));
   try {
     const ts: TaskState = {
       id: 'task-a',
@@ -167,7 +167,7 @@ test('summarize upstream does not rewrite author-owned trailing ellipsis', (t) =
 });
 
 test('task transcript mirror serializes overlapping flushes in append order', async (t) => {
-  const dir = mkdtempSync(join(tmpdir(), 'proof-stream-'));
+  const dir = mkdtempSync(join(tmpdir(), 'oven-stream-'));
   const store = new TaskTranscriptStore();
   try {
     await store.beginMirroredAppend('task-a', dir);
@@ -188,7 +188,7 @@ test('task transcript mirror serializes overlapping flushes in append order', as
 });
 
 test('task transcript store reads existing mirror files after resume', (t) => {
-  const dir = mkdtempSync(join(tmpdir(), 'proof-stream-resume-'));
+  const dir = mkdtempSync(join(tmpdir(), 'oven-stream-resume-'));
   const store = new TaskTranscriptStore();
   try {
     const rel = taskStreamArtifactRelPath('task-a');

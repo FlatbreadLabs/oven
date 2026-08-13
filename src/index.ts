@@ -1,9 +1,9 @@
 /**
- * Public library surface for `@flatbread/proof` — the DAG task runner that
+ * Public library surface for `@flatbread/oven` — the DAG task runner that
  * decomposes a task into a graph of Cursor SDK subagents and proves they
  * delivered via live canvas, oracles, pause gates, and convergence loops.
  *
- * The primary use case is the `proof` CLI (`bin/proof.js`); these exports
+ * The primary use case is the `oven` CLI (`bin/oven.js`); these exports
  * are for tooling that wants to author or inspect DAGs programmatically.
  */
 

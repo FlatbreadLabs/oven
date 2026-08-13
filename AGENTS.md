@@ -1,11 +1,11 @@
 # Agents
 
-Proof is a standalone agent-orchestration tool. It takes a DAG of Cursor
+Oven is a standalone agent-orchestration tool. It takes a DAG of Cursor
 subagent tasks, runs them in dependency order with a model chosen by task
 complexity, and writes live status into a `.canvas.tsx` file.
 
-The npm package name is `@flatbread/proof`. The GitHub repo is
-`FlatbreadLabs/proof`.
+The npm package name is `@flatbread/oven`. The GitHub repo is
+`FlatbreadLabs/oven`.
 
 ## Key commands
 
@@ -22,7 +22,7 @@ Useful extras: `pnpm lint:fix`, `pnpm models:list`, and
 
 ## Gotchas
 
-1. **Build before test or CLI use.** `pnpm test` and `pnpm exec proof` need
+1. **Build before test or CLI use.** `pnpm test` and `pnpm exec oven` need
    `dist/`. Run `pnpm build` after a clean install or source edit.
 2. **`CURSOR_API_KEY` for real runs.** Full DAG runs and `pnpm models:list`
    need the key. `--init-only` and `--dry-check-cmds` do not.

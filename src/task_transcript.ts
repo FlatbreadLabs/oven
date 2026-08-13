@@ -57,7 +57,7 @@ export class TaskTranscriptStore {
       const msg = e instanceof Error ? e.message : String(e);
       logMirrorError?.(
         taskId,
-        `[proof] stream mirror init failed for ${taskId}: ${msg}`
+        `[oven] stream mirror init failed for ${taskId}: ${msg}`
       );
     }
   }
@@ -102,7 +102,7 @@ export class TaskTranscriptStore {
         const msg = e instanceof Error ? e.message : String(e);
         logMirrorError?.(
           taskId,
-          `[proof] stream mirror append failed for ${taskId}: ${msg}`
+          `[oven] stream mirror append failed for ${taskId}: ${msg}`
         );
       }
     });

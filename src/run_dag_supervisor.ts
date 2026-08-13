@@ -46,7 +46,7 @@ function resolveTsxBin(): string {
   return 'tsx';
 }
 
-const DEFAULT_STATE_PATH = '.proof/run-state.json';
+const DEFAULT_STATE_PATH = '.oven/run-state.json';
 const DEFAULT_MAX_RESTARTS = 20;
 
 interface SupervisorArgs {
@@ -139,7 +139,7 @@ async function runOnce(argv: readonly string[]): Promise<number> {
     });
     child.on('error', (err) => {
       console.error(
-        `[proof-supervisor] failed to launch runner: ${err.message}`
+        `[oven-supervisor] failed to launch runner: ${err.message}`
       );
       resolveCode(1);
     });
@@ -159,7 +159,7 @@ async function main(): Promise<void> {
     if (restart > 0) {
       argv = setFlag(argv, '--resume-state', absoluteStatePath);
       console.log(
-        `[proof-supervisor] restart ${restart}/${parsed.maxRestarts} from ${absoluteStatePath}`
+        `[oven-supervisor] restart ${restart}/${parsed.maxRestarts} from ${absoluteStatePath}`
       );
     }
 
@@ -170,14 +170,14 @@ async function main(): Promise<void> {
   }
 
   console.error(
-    `[proof-supervisor] exceeded --max-runner-restarts=${parsed.maxRestarts}`
+    `[oven-supervisor] exceeded --max-runner-restarts=${parsed.maxRestarts}`
   );
   process.exit(1);
 }
 
 main().catch((err) => {
   console.error(
-    `[proof-supervisor] fatal: ${
+    `[oven-supervisor] fatal: ${
       err instanceof Error ? (err.stack ?? err.message) : err
     }`
   );

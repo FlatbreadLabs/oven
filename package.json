@@ -1,5 +1,5 @@
 {
-  "name": "@flatbread/proof",
+  "name": "@flatbread/oven",
   "version": "1.0.0",
   "description": "Bounded DAG task runner for Cursor agents. Runs subagent tasks in topological order with a live canvas, oracle and pause gates, and bounded re-execution loops.",
   "type": "module",
@@ -16,13 +16,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FlatbreadLabs/proof.git"
+    "url": "git+https://github.com/FlatbreadLabs/oven.git"
   },
-  "homepage": "https://github.com/FlatbreadLabs/proof#readme",
+  "homepage": "https://github.com/FlatbreadLabs/oven#readme",
   "author": "Tony Ketcham <ketcham.dev@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/FlatbreadLabs/proof/issues"
+    "url": "https://github.com/FlatbreadLabs/oven/issues"
   },
   "exports": {
     ".": "./dist/index.js"
@@ -31,8 +31,8 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "proof": "bin/proof.js",
-    "proof-supervisor": "bin/proof-supervisor.js"
+    "oven": "bin/oven.js",
+    "oven-supervisor": "bin/oven-supervisor.js"
   },
   "files": [
     "bin",

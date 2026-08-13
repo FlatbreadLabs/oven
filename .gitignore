@@ -3,7 +3,7 @@ dist
 .DS_Store
 .env
 .env.*
-.flatbread/artifacts/
-.proof/
+.oven/artifacts/
+.oven/
 *.log
 .pnpm-debug.log
